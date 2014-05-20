@@ -1,4 +1,4 @@
-package eu.socialsensor.framework.multimedia.webservice;
+package eu.socialsensor.framework.multimedia.webservice.exceptions;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;

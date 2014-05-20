@@ -1,5 +1,6 @@
 package eu.socialsensor.framework.multimedia.webservice;
 
+import eu.socialsensor.framework.multimedia.webservice.exceptions.IndexServiceException;
 import eu.socialsensor.framework.multimedia.webservice.response.JsonResultSet;
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
 import gr.iti.mklab.visual.datastructures.AbstractSearchStructure;
@@ -48,7 +49,7 @@ import com.sun.jersey.multipart.FormDataParam;
 
 /**
  * 
- * RESTFUL web-service for visual indexing and nearest neighbor retrieval  
+ * RESTFUL web-service for visual indexing and nearest neighbor retrieval. 
  * 
  * @author Schinas Manos
  * @email  manosetro@iti.gr
@@ -84,13 +85,10 @@ public class VisualIndexService {
 	
 	private static int subvectorsNum = 64; 
 	private static int kc = 256;
-	private static int w = 64; // larger values will improve results/increase seach time
+	private static int w = 64; // larger values will improve results but increase search time
 	
 	private static String productQuantizerFile;
 	private static String coarseQuantizerFile;
-	
-	
-	
 
 	private static File learningFolder;
 	private static File dataFolder;
@@ -764,7 +762,7 @@ public class VisualIndexService {
     /**
      * Fetch Media Content 
      * @param urlStr
-     * @return
+     * @return BufferedImage
      * @throws IOException
      */
     private BufferedImage fetch(String urlStr) throws IOException {
@@ -776,7 +774,7 @@ public class VisualIndexService {
     /**
      * Extract feature vector of an image
      * @param image
-     * @return
+     * @return double[]
      * @throws Exception
      */
     private double[] extract(BufferedImage image) throws Exception {
