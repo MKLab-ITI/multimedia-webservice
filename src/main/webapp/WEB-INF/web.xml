@@ -17,10 +17,10 @@
   	
     <context-param>
       	<param-name>learningFolder</param-name>
-      	<param-value>/disk2_data/VisualIndex/learning_files/</param-value>
+      	<param-value>/second_disk/VisualIndex/learning_files/</param-value>
     </context-param>
   	<context-param>
     	<param-name>dataFolder</param-name>
-      	<param-value>/disk2_data/VisualIndex/data/</param-value>
+      	<param-value>/second_disk/VisualIndex/data/</param-value>
    	</context-param>
 </web-app>
