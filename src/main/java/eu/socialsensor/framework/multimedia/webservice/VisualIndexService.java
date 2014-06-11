@@ -61,7 +61,7 @@ import com.sun.jersey.multipart.FormDataParam;
 public class VisualIndexService {
 	
     // hard-coded settings settings
-    private static final int  maxNumVectors = 1000000;    
+    private static final int  maxNumVectors = 5000000;    
     
     private static final double visualDistanceThreshold = 0.5;
     
