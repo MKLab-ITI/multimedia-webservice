@@ -46,7 +46,6 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.sun.jersey.multipart.FormDataParam;
 
-
 /**
  * 
  * RESTFUL web-service for visual indexing and nearest neighbor retrieval. 
@@ -61,7 +60,6 @@ import com.sun.jersey.multipart.FormDataParam;
 public class VisualIndexService {
 	
     // hard-coded settings settings
-    private static final int  maxNumVectors = 5000000;    
     
     private static final double visualDistanceThreshold = 0.5;
     
@@ -93,7 +91,7 @@ public class VisualIndexService {
 	private static File learningFolder;
 	private static File dataFolder;
 
-	
+	private Integer numOfVectors;
 	
     public VisualIndexService(@Context ServletContext context) throws Exception {
     	
@@ -110,12 +108,12 @@ public class VisualIndexService {
     	
     	if(dataFolder == null) {
     		String dataFolderStr = context.getInitParameter("dataFolder");
-    		if(dataFolderStr != null)
+    		if(dataFolderStr != null) {
     			dataFolder = new File(dataFolderStr);
+    		}
     	}
     	
     	if(pca == null) {
- 
     		String[] codebookFiles = { 
     				learningFolder.toString() + "/surf_l2_128c_0.csv",
     				learningFolder.toString() + "/surf_l2_128c_1.csv", 
@@ -147,6 +145,12 @@ public class VisualIndexService {
     	if(ivfpqIndices == null){
     		ivfpqIndices = new HashMap<String, AbstractSearchStructure>();
     	}
+    	
+    	this.numOfVectors = Integer.getInteger(context.getInitParameter("numOfVectors"));
+    	if(numOfVectors == null) {
+    		numOfVectors = 20000000;
+    	}
+    	
     }
     
     
@@ -633,11 +637,11 @@ public class VisualIndexService {
     			
     			msg += " je.lck deleted!  Create linear to: " + linearIndexFolder;
     			
-    			Linear linearIndex = new Linear(targetLengthMax, maxNumVectors, false, linearIndexFolder, false, true, 0);
+    			Linear linearIndex = new Linear(targetLengthMax, numOfVectors, false, linearIndexFolder, false, true, 0);
     				
     			msg += " Linear index created!  ";
     			
-    			IVFPQ ivfpqIndex = new IVFPQ(targetLength, maxNumVectors, false, ivfpqIndexFolder, subvectorsNum, kc,
+    			IVFPQ ivfpqIndex = new IVFPQ(targetLength, numOfVectors, false, ivfpqIndexFolder, subvectorsNum, kc,
     						PQ.TransformationType.RandomPermutation, numCoarseCentroids, true, 0);
     			
     			msg += " IVFPQ index created!  ";
