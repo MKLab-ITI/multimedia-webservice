@@ -272,7 +272,6 @@ public class VisualIndexService {
             try {
             	answer = ivfpqIndex.computeNearestNeighbors(numResults * pageNum, vector);
             } catch (Exception e) {
-                e.printStackTrace();
                 try {
     				throw new IndexServiceException(
     						new JSONObject().put("code", 400).put("msg", e.getMessage()));
@@ -285,8 +284,11 @@ public class VisualIndexService {
             return simResSet;
 		}
     	catch (Exception e) {
-			throw new IndexServiceException(e);
-		}
+    		e.printStackTrace();
+    	}
+    	
+    	JsonResultSet emptyResult = new JsonResultSet();
+    	return emptyResult.toJSON();
     }
     
     @POST
