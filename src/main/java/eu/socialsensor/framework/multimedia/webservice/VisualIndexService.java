@@ -262,7 +262,7 @@ public class VisualIndexService {
     		}
     		catch(Exception e) {
     			throw new IndexServiceException(
-						new JSONObject().put("code", 400).put("msg", e.getMessage()));
+						new JSONObject().put("code", 400).put("exception", e.getMessage()).put("msg", "Error on fetching or frature extraction"));
     		}
     		
     		
