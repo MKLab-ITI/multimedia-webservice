@@ -23,4 +23,8 @@
     	<param-name>dataFolder</param-name>
       	<param-value>/second_disk/VisualIndex/data/</param-value>
    	</context-param>
+  	<context-param>
+    	<param-name>numOfVectors</param-name>
+      	<param-value>15000000</param-value>
+   	</context-param>
 </web-app>
