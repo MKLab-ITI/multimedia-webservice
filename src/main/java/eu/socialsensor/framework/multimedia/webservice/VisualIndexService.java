@@ -238,7 +238,6 @@ public class VisualIndexService {
             @DefaultValue("1") @QueryParam("page") int pageNum,
             @DefaultValue("0") @QueryParam("threshold") double threshold) {
     	
-    	BufferedImage image = null;
     	try {
     		if(collection==null || !linearIndices.containsKey(collection)) {
    			 throw new IndexServiceException(
@@ -247,8 +246,26 @@ public class VisualIndexService {
     		
     		AbstractSearchStructure ivfpqIndex = ivfpqIndices.get(collection);
     		
-    		image = fetch(url);
-    		double[] vector = extract(image);
+    		double[] vector = null;
+    		try {
+    			BufferedImage image = fetch(url);
+    			if(image == null) {
+    				throw new IndexServiceException(
+							new JSONObject().put("code", 400).put("msg", "image is null"));
+    			}
+    			
+    			vector = extract(image);
+    			if(vector == null) {
+	    			throw new IndexServiceException(
+							new JSONObject().put("code", 400).put("msg", "vector is null"));
+	    		}
+    		}
+    		catch(Exception e) {
+    			throw new IndexServiceException(
+						new JSONObject().put("code", 400).put("msg", e.getMessage()));
+    		}
+    		
+    		
     		
     		// first query
             Answer answer = null;
@@ -790,4 +807,5 @@ public class VisualIndexService {
 
     	return vector;
     }
+    
 }
