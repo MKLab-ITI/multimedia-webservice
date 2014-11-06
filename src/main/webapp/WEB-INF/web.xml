@@ -1,30 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
-  	<display-name>socialsensor-multimedia-webservice</display-name>
-  	<servlet>
-    	<servlet-name>Jersey REST Service</servlet-name>
-    	<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
-    	<init-param>
-      		<param-name>com.sun.jersey.config.property.packages</param-name>
-      		<param-value>eu.socialsensor.framework.multimedia.webservice</param-value>
-    	</init-param>
-    	<load-on-startup>1</load-on-startup>
-  	</servlet>
-  	<servlet-mapping>
-    	<servlet-name>Jersey REST Service</servlet-name>
-    	<url-pattern>/rest/*</url-pattern>
-  	</servlet-mapping>
-  	
-    <context-param>
-      	<param-name>learningFolder</param-name>
-      	<param-value>/second_disk/VisualIndex/learning_files/</param-value>
-    </context-param>
-  	<context-param>
-    	<param-name>dataFolder</param-name>
-      	<param-value>/second_disk/VisualIndex/data/</param-value>
-   	</context-param>
-  	<context-param>
-    	<param-name>numOfVectors</param-name>
-      	<param-value>15000000</param-value>
-   	</context-param>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <display-name>multimedia-webservice</display-name>
+  <servlet>
+    <servlet-name>Jersey REST Service</servlet-name>
+    <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+    <init-param>
+      <param-name>com.sun.jersey.config.property.packages</param-name>
+      <param-value>eu.socialsensor.framework.multimedia.webservice</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Jersey REST Service</servlet-name>
+    <url-pattern>/rest/*</url-pattern>
+  </servlet-mapping>
+  <context-param>
+    <param-name>learningFolder</param-name>
+    <param-value>/second_disk/VisualIndex/learning_files/</param-value>
+  </context-param>
+  <context-param>
+    <param-name>dataFolder</param-name>
+    <param-value>/second_disk/VisualIndex/data/</param-value>
+  </context-param>
+  <context-param>
+    <param-name>numOfVectors</param-name>
+    <param-value>15000000</param-value>
+  </context-param>
 </web-app>
