@@ -17,9 +17,10 @@ import gr.iti.mklab.visual.vectorization.ImageVectorization;
 import gr.iti.mklab.visual.vectorization.ImageVectorizationResult;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -41,8 +42,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.codehaus.jettison.json.JSONArray;
 
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -77,7 +85,7 @@ public class VisualIndexService {
 	private static int targetLengthMax = 1024;
 	private static int targetLength = 1024;
 	
-	
+			
 	// Product quantization
 	private static int numCoarseCentroids = 8192;
 	
@@ -92,12 +100,18 @@ public class VisualIndexService {
 	private static File dataFolder;
 
 	private Integer numOfVectors;
+
+	private static DefaultHttpClient httpClient = null;
 	
     public VisualIndexService(@Context ServletContext context) throws Exception {
-    	
+		
     	_context = context;
     	
-    	if(learningFolder == null) {
+    	if(httpClient == null) {
+    		httpClient = new DefaultHttpClient();
+    	}
+    	
+    	if(learningFolder == null) {    		
     		String learningFolderStr = context.getInitParameter("learningFolder");
     		if(learningFolderStr != null) {
     			learningFolder = new File(learningFolderStr);
@@ -238,35 +252,58 @@ public class VisualIndexService {
             @DefaultValue("1") @QueryParam("page") int pageNum,
             @DefaultValue("0") @QueryParam("threshold") double threshold) {
     	
+    	JSONObject response = new JSONObject();
     	try {
+    			
+    		
+        	response.put("msg", "Inside method queryURL");
+        	
     		if(collection==null || !linearIndices.containsKey(collection)) {
    			 throw new IndexServiceException(
    					new JSONObject().put("code", 400).put("msg", "collection " + collection + " does not exists"));
     		}
     		
+    		response.put("msg1", "Collection Exists!");
+    		
     		AbstractSearchStructure ivfpqIndex = ivfpqIndices.get(collection);
     		
     		double[] vector = null;
     		try {
-    			BufferedImage image = fetch(url);
+    			
+    			response.put("url", url);
+    			BufferedImage image = null;
+    			try {
+    				image = fetch(url);
+    				//image = fetchWithoutProxy(url);
+    			}
+    			catch(Exception e) {
+    				response.put("exception", e.getMessage());
+    			}
+    			
     			if(image == null) {
+    				response.put("image", "null");
     				throw new IndexServiceException(
 							new JSONObject().put("code", 400).put("msg", "image is null"));
     			}
+    			else {
+    				response.put("size", image.getHeight()+"x"+image.getWidth());
+    			}
+    			
+    			response.put("msg2", "Fetch Done!");
     			
     			vector = extract(image);
     			if(vector == null) {
 	    			throw new IndexServiceException(
 							new JSONObject().put("code", 400).put("msg", "vector is null"));
 	    		}
+    			
+    			response.put("msg3", "Feature Extraction Done!");
     		}
     		catch(Exception e) {
     			throw new IndexServiceException(
 						new JSONObject().put("code", 400).put("exception", e.getMessage()).put("msg", "Error on fetching or frature extraction"));
     		}
-    		
-    		
-    		
+
     		// first query
             Answer answer = null;
             try {
@@ -280,13 +317,19 @@ public class VisualIndexService {
     			}
             }
 
+            response.put("msg4", "Compuration of Nearest Neighbors Done!");
+            
             String simResSet = getResults(answer, pageNum, numResults, threshold);
+            
+            response.put("msg5", "Parsing of response Done Done!");
+            
             return simResSet;
 		}
     	catch (Exception e) {
     		e.printStackTrace();
     	}
     	
+    	//return response.toString();
     	JsonResultSet emptyResult = new JsonResultSet();
     	return emptyResult.toJSON();
     }
@@ -528,6 +571,63 @@ public class VisualIndexService {
         return "{\"success\" : " + true + "}";
     }
     
+
+    @GET
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/vector/{collection}")
+    public String getVector(@QueryParam("id") String id,
+    		@PathParam("collection") String collection) {
+
+    	try {
+    		if(collection==null || !linearIndices.containsKey(collection)) {
+   			 throw new IndexServiceException(
+						new JSONObject().put("code", 400).put("msg", "collection " + collection + " does not exists"));
+   		 	}	
+   		 	if (id==null || id.length() == 0) {
+   		 		throw new IndexServiceException(
+   		 				new JSONObject().put("code", 400).put("msg", "id is null or has zero length"));
+   		 	}
+   		 	
+   	    	Linear linearIndex = (Linear) linearIndices.get(collection);
+   	   
+   	    	JSONArray array = new JSONArray();
+   		 	
+   	    	int iid = linearIndex.getInternalId(id);
+   	    	if(iid >= 0) {
+   	    		double[] vector = linearIndex.getVector(iid);
+   	    		if(vector != null) {
+   	    			
+   	    			try {
+   	    				JSONObject obj = new JSONObject();
+   	    				
+   	    				for(double v : vector) {
+   	    					array.put(v);
+   	    				}
+   	    				obj.put("vector", array);
+   	    				obj.put("exists", true);
+   	    				
+   	    				return array.toString();
+   	    				//return obj.toString();
+   	    			}
+   	    			catch(Exception e) {
+   	    				
+   	    			}
+   	    		}
+   	    	}
+   		 	
+   	    	return array.toString();
+   	    	
+    	} catch (Exception e) {
+    		throw new IndexServiceException(e);
+    	}
+
+    	
+    	//return "{\"exists\" : " + false + "}";
+        
+    	
+    }
+    
     
     /**
      * Get information and statistics of the service
@@ -722,14 +822,54 @@ public class VisualIndexService {
     		catch(Exception e) { }
     		
     		File dir = new File(collectionFolder);
-			if(dir.exists())
+			if(dir.exists()) {
 				FileUtils.deleteDirectory(dir);
+			}
 			
             return "{ \"" + collection + "\" :  \"deleted\" }";
         } catch (Exception e) {
         	try {
 				throw new IndexServiceException(
 						new JSONObject().put("code", 405).put("msg", "Cannot delete "+collection));
+			} catch (JSONException ex) {
+				throw new IndexServiceException(ex);
+			}
+        }
+    }
+    
+    /**
+     * Get information and statistics of the service
+     * @return
+     * @throws JSONException 
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/remove/{collection}")
+    public String removeCollection(@PathParam("collection") String collection) {
+    		
+        try {    
+    			
+    		try {
+    			AbstractSearchStructure index = linearIndices.remove(collection);
+    			if(index  != null) {
+    				index.close();
+    			}
+    		}
+    		catch(Exception e) { }
+    		try {
+    			AbstractSearchStructure index = ivfpqIndices.remove(collection);
+    			if(index  != null) {
+    				index.close();
+    			}
+    		}
+    		catch(Exception e) { }
+
+			
+            return "{ \"" + collection + "\" :  \"removed\" }";
+        } catch (Exception e) {
+        	try {
+				throw new IndexServiceException(
+						new JSONObject().put("code", 405).put("msg", "Cannot remove " + collection));
 			} catch (JSONException ex) {
 				throw new IndexServiceException(ex);
 			}
@@ -784,15 +924,57 @@ public class VisualIndexService {
     
     /**
      * Fetch Media Content 
-     * @param urlStr
+     * @param url
      * @return BufferedImage
+     * @throws ClientProtocolException 
      * @throws IOException
+     * @throws JSONException 
      */
-    private BufferedImage fetch(String urlStr) throws IOException {
-    	URL url = new URL(urlStr);  	
-    	return ImageIO.read(url.openStream());
+    private BufferedImage fetch(String url) throws ClientProtocolException, IOException, JSONException { 	
+    	
+    	//URL urlObject = new URL(url);
+    	HttpGet httpget = new HttpGet(url);
+    	 
+    	//HttpHost target = new HttpHost(urlObject.getAuthority(), urlObject.getPort(), urlObject.getProtocol());
+    	//HttpGet request = new HttpGet(urlObject.getPath());
+    	
+    	//json.put("target", target.toHostString());
+    	//Object proxy = httpClient.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY);
+    	
+    	//json.put("request", ("Executing request " + request.getRequestLine() + " to " + target + " via " + proxy));
+    	
+    	HttpResponse response = null;
+    	synchronized(httpClient) {
+    		//response = httpClient.execute(target, request);
+    		response = httpClient.execute(httpget);	
+    	}
+    	
+    	if(response != null) { 
+    		//json.put("response", response.getStatusLine());
+    		
+    		HttpEntity entity = response.getEntity();
+    		if (entity != null) {
+
+    			InputStream contentStream = entity.getContent();
+    			byte[] content = IOUtils.toByteArray(contentStream);
+    			 
+    			//json.put("content", content.length);
+    			
+    			ByteArrayInputStream is = new ByteArrayInputStream(content);
+    			BufferedImage image = ImageIO.read(is);
+    			 
+    			return image;
+    		}
+    		else {
+    			//json.put("entity", "null");
+    		}
+    	}
+    	else {
+    		//json.put("response", "null");
+    	}
+    	
+    	return null;
     }
-    
     
     /**
      * Extract feature vector of an image
@@ -809,5 +991,6 @@ public class VisualIndexService {
 
     	return vector;
     }
+    
     
 }
