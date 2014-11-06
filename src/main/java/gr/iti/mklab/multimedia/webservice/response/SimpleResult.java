@@ -1,4 +1,4 @@
-package eu.socialsensor.framework.multimedia.webservice.response;
+package gr.iti.mklab.multimedia.webservice.response;
 
 import java.text.DecimalFormat;
 

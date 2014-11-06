@@ -1,4 +1,4 @@
-package eu.socialsensor.framework.multimedia.webservice;
+package gr.iti.mklab.multimedia.webservice;
 
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
 import gr.iti.mklab.visual.datastructures.IVFPQ;

@@ -1,7 +1,7 @@
-package eu.socialsensor.framework.multimedia.webservice;
+package gr.iti.mklab.multimedia.webservice;
 
-import eu.socialsensor.framework.multimedia.webservice.exceptions.IndexServiceException;
-import eu.socialsensor.framework.multimedia.webservice.response.JsonResultSet;
+import gr.iti.mklab.multimedia.webservice.exceptions.IndexServiceException;
+import gr.iti.mklab.multimedia.webservice.response.JsonResultSet;
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
 import gr.iti.mklab.visual.datastructures.AbstractSearchStructure;
 import gr.iti.mklab.visual.datastructures.IVFPQ;

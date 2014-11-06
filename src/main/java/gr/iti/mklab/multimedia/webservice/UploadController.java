@@ -1,4 +1,4 @@
-package eu.socialsensor.framework.multimedia.webservice;
+package gr.iti.mklab.multimedia.webservice;
 
 import java.io.File;
 import java.io.FileInputStream;
