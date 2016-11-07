@@ -232,7 +232,7 @@ public class VisualIndexService {
         if (!success) {
         	try {
 				throw new IndexServiceException(
-						new JSONObject().put("code", 400).put("msg", "cannot index vector"));
+						new JSONObject().put("code", 400).put("msg", "cannot index vector for " + id));
 			} catch (JSONException e) {
 				throw new IndexServiceException(e);
 			}
@@ -778,6 +778,10 @@ public class VisualIndexService {
     				linearIndices.put(collection, linearIndex);
     				ivfpqIndices.put(collection, ivfpqIndex);
     			}
+    			else {
+    				throw new IndexServiceException(
+    	   					new JSONObject().put("code", 400).put("msg", "collection " + collection + " cannot be added!"));
+    			}
     		}
     		catch(Exception e) {
         		throw new IndexServiceException(
@@ -810,14 +814,17 @@ public class VisualIndexService {
     			
     		try {
     			AbstractSearchStructure index = linearIndices.remove(collection);
-    			if(index  != null)
+    			if(index  != null) {
     				index.close();
+    			}
     		}
     		catch(Exception e) { }
+    		
     		try {
     			AbstractSearchStructure index = ivfpqIndices.remove(collection);
-    			if(index  != null)
+    			if(index  != null) {
     				index.close();
+    			}
     		}
     		catch(Exception e) { }
     		
@@ -830,7 +837,7 @@ public class VisualIndexService {
         } catch (Exception e) {
         	try {
 				throw new IndexServiceException(
-						new JSONObject().put("code", 405).put("msg", "Cannot delete "+collection));
+						new JSONObject().put("code", 405).put("msg", "Cannot delete " + collection));
 			} catch (JSONException ex) {
 				throw new IndexServiceException(ex);
 			}
@@ -900,8 +907,9 @@ public class VisualIndexService {
     private static double[] bytesToDouble(byte[] bytes) {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         double[] doubles = new double[bytes.length / 8];
-        for (int i = 0; i < doubles.length; i++)
+        for (int i = 0; i < doubles.length; i++) {
             doubles[i] = buffer.getDouble(i * 8);
+        }
         return doubles;
     }
     
