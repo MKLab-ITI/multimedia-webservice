@@ -3,7 +3,6 @@ package gr.iti.mklab.multimedia.webservice;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.nio.channels.FileChannel;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
@@ -85,14 +84,18 @@ public class UploadController {
             throw new IllegalArgumentException("A file with this id already exists!");
         }
 
-        FileChannel source = null;
-        FileChannel destination = null;
+        FileInputStream source = null;
+        FileOutputStream destination = null;
 
         try {
-            source = new FileInputStream(sourceFile).getChannel();
-            destination = new FileOutputStream(destFile).getChannel();
-            destination.transferFrom(source, 0, source.size());
-        } finally {
+            source = new FileInputStream(sourceFile);
+            destination = new FileOutputStream(destFile);
+            destination.getChannel().transferFrom(source.getChannel(), 0, source.getChannel().size());
+        } 
+        catch(Exception e) {
+        	
+        }
+        finally {
             if (source != null) {
                 source.close();
             }
@@ -113,5 +116,4 @@ public class UploadController {
             }
         }
     }
-
 }

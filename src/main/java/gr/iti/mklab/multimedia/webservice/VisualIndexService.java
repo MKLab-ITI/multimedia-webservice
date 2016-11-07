@@ -932,47 +932,29 @@ public class VisualIndexService {
      */
     private BufferedImage fetch(String url) throws ClientProtocolException, IOException, JSONException { 	
     	
-    	//URL urlObject = new URL(url);
     	HttpGet httpget = new HttpGet(url);
-    	 
-    	//HttpHost target = new HttpHost(urlObject.getAuthority(), urlObject.getPort(), urlObject.getProtocol());
-    	//HttpGet request = new HttpGet(urlObject.getPath());
-    	
-    	//json.put("target", target.toHostString());
-    	//Object proxy = httpClient.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY);
-    	
-    	//json.put("request", ("Executing request " + request.getRequestLine() + " to " + target + " via " + proxy));
     	
     	HttpResponse response = null;
     	synchronized(httpClient) {
-    		//response = httpClient.execute(target, request);
     		response = httpClient.execute(httpget);	
     	}
     	
     	if(response != null) { 
-    		//json.put("response", response.getStatusLine());
     		
     		HttpEntity entity = response.getEntity();
     		if (entity != null) {
 
     			InputStream contentStream = entity.getContent();
     			byte[] content = IOUtils.toByteArray(contentStream);
-    			 
-    			//json.put("content", content.length);
     			
     			ByteArrayInputStream is = new ByteArrayInputStream(content);
     			BufferedImage image = ImageIO.read(is);
     			 
     			return image;
     		}
-    		else {
-    			//json.put("entity", "null");
-    		}
-    	}
-    	else {
-    		//json.put("response", "null");
-    	}
     	
+    	}
+
     	return null;
     }
     
