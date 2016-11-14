@@ -24,6 +24,6 @@
   </context-param>
   <context-param>
     <param-name>numOfVectors</param-name>
-    <param-value>15000000</param-value>
+    <param-value>5000000</param-value>
   </context-param>
 </web-app>
