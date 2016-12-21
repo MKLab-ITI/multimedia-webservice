@@ -162,9 +162,8 @@ public class VisualIndexService {
     	
     	this.numOfVectors = Integer.getInteger(context.getInitParameter("numOfVectors"));
     	if(numOfVectors == null) {
-    		numOfVectors = 5000000;
+    		numOfVectors = 100000;
     	}
-    	
     }
     
     

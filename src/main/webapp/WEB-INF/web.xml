@@ -16,14 +16,14 @@
   </servlet-mapping>
   <context-param>
     <param-name>learningFolder</param-name>
-    <param-value>/disk2_data/VisualIndex/learning_files/</param-value>
+    <param-value>/home/iti-310/VisualIndex/learning_files/</param-value>
   </context-param>
   <context-param>
     <param-name>dataFolder</param-name>
-    <param-value>/disk2_data/VisualIndex/data/</param-value>
+    <param-value>/home/iti-310/VisualIndex/data/</param-value>
   </context-param>
   <context-param>
     <param-name>numOfVectors</param-name>
-    <param-value>5000000</param-value>
+    <param-value>100000</param-value>
   </context-param>
 </web-app>
