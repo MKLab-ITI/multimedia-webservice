@@ -48,6 +48,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.codehaus.jettison.json.JSONArray;
@@ -71,6 +72,8 @@ public class VisualIndexService {
     
     private static final double visualDistanceThreshold = 0.5;
     
+    private Logger _logger = Logger.getLogger(VisualIndexService.class);
+    		
     private static int maxNumPixels = 768 * 512;
     
     private static Map<String, AbstractSearchStructure> linearIndices = null;
@@ -117,6 +120,9 @@ public class VisualIndexService {
     			learningFolder = new File(learningFolderStr);
     			coarseQuantizerFile = learningFolder + "/" + "qcoarse_1024d_8192k.csv";
     			productQuantizerFile = learningFolder + "/" + "pq_1024_64x8_rp_ivf_8192k.csv";
+    			
+    			_logger.info("Coarse Quantizer File: " + coarseQuantizerFile);
+    			_logger.info("Product Quantizer File: " + productQuantizerFile);
     		}
     	}
     	
@@ -149,6 +155,8 @@ public class VisualIndexService {
     			pca  = new PCA(targetLength, 1, initialLength, true);
 				pca.loadPCAFromFile(pcaFile.toString());
 				ImageVectorization.setPcaProjector(pca);
+				
+				_logger.info("PCA loaded from  " + pcaFile.toString());
     		}
     		
     	}
@@ -166,6 +174,9 @@ public class VisualIndexService {
     	}
     }
     
+    public void init() {
+
+    }
     
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -273,7 +284,6 @@ public class VisualIndexService {
     			BufferedImage image = null;
     			try {
     				image = fetch(url);
-    				//image = fetchWithoutProxy(url);
     			}
     			catch(Exception e) {
     				response.put("exception", e.getMessage());
@@ -308,6 +318,7 @@ public class VisualIndexService {
             try {
             	answer = ivfpqIndex.computeNearestNeighbors(numResults * pageNum, vector);
             } catch (Exception e) {
+            	_logger.error("Exception during querying of " + collection + " with " + url + ". Error: " + e.getMessage());
                 try {
     				throw new IndexServiceException(
     						new JSONObject().put("code", 400).put("msg", e.getMessage()));
@@ -409,6 +420,7 @@ public class VisualIndexService {
             @DefaultValue("20") @FormDataParam("numResults") int numResults,
             @DefaultValue("1") @FormDataParam("page") int pageNum,
             @DefaultValue("0") @FormDataParam("threshold") double threshold) {
+    	
         // validate parameters
     	try {
     		if(collection==null || !linearIndices.containsKey(collection)) {
@@ -431,9 +443,9 @@ public class VisualIndexService {
 			throw new IndexServiceException(e);
     	}
         
-    	if (threshold == 0) 
+    	if (threshold == 0) {
         	threshold = visualDistanceThreshold;
-        
+    	}
         
         AbstractSearchStructure ivfpqIndex = ivfpqIndices.get(collection);
         
@@ -444,7 +456,7 @@ public class VisualIndexService {
         try {
         	answer = ivfpqIndex.computeNearestNeighbors(numResults * pageNum, vector);
         } catch (Exception e) {
-            e.printStackTrace();
+        	_logger.error("Exception during querying of " + collection + ". Error: " + e.getMessage());
             try {
 				throw new IndexServiceException(
 						new JSONObject().put("code", 400).put("msg", e.getMessage()));
@@ -510,6 +522,7 @@ public class VisualIndexService {
         		throw new Exception("Vector " + id + " does not exist");
         	}
         } catch (Exception e) {
+        	_logger.error("Exception during querying of " + collection + " with " + id + ". Error: " + e.getMessage());
         	try {
 				throw new IndexServiceException(
 						new JSONObject().put("code", 405).put("msg", e.getMessage()));
@@ -521,10 +534,7 @@ public class VisualIndexService {
         String results = getResults(answer, pageNum, numResults, threshold);
         return results;
     }
-
-
-    
-    
+ 
     
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -746,10 +756,12 @@ public class VisualIndexService {
     		try {
     			File jeLck = new File(ivfpqIndexFolder, "je.lck");
     			if(jeLck.exists()) {
+    				_logger.info("Delete " + jeLck.getAbsolutePath());
     				jeLck.delete();
     			}
     			jeLck = new File(linearIndexFolder, "je.lck");
     			if(jeLck.exists()) {
+    				_logger.info("Delete " + jeLck.getAbsolutePath());
     				jeLck.delete();
     			}
     			
@@ -786,11 +798,14 @@ public class VisualIndexService {
         		throw new IndexServiceException(
         				new JSONObject().put("code", 501).put("msg", "error on startup: " + e.getMessage()));
     		}
+    		
+    		_logger.info(msg);
+    		
             return "{ \"" + collection + "\" :  \"created\" }";
         } catch (Exception e) {
+        	_logger.error("Exception during creation of " + collection + ". Error: " + e.getMessage());
         	try {
-				throw new IndexServiceException(
-						new JSONObject().put("code", 405).put("msg", msg));
+				throw new IndexServiceException(new JSONObject().put("code", 405).put("msg", msg));
 			} catch (JSONException ex) {
 				throw new IndexServiceException(ex);
 			}
@@ -808,7 +823,6 @@ public class VisualIndexService {
     public String deleteCollection(@PathParam("collection") String collection) {
     		
     	String collectionFolder = dataFolder + "/" + collection;
-		
         try {    
     			
     		try {
@@ -834,9 +848,9 @@ public class VisualIndexService {
 			
             return "{ \"" + collection + "\" :  \"deleted\" }";
         } catch (Exception e) {
+        	_logger.error("Exception during deletion of " + collection + ". Error: " + e.getMessage());
         	try {
-				throw new IndexServiceException(
-						new JSONObject().put("code", 405).put("msg", "Cannot delete " + collection));
+				throw new IndexServiceException(new JSONObject().put("code", 405).put("msg", "Cannot delete " + collection));
 			} catch (JSONException ex) {
 				throw new IndexServiceException(ex);
 			}
@@ -873,6 +887,7 @@ public class VisualIndexService {
 			
             return "{ \"" + collection + "\" :  \"removed\" }";
         } catch (Exception e) {
+        	_logger.error("Exception during remove of " + collection + ". Error: " + e.getMessage());
         	try {
 				throw new IndexServiceException(
 						new JSONObject().put("code", 405).put("msg", "Cannot remove " + collection));
@@ -894,6 +909,7 @@ public class VisualIndexService {
             success = success && ivfpqIndex.indexVector(id, newVector);
         } catch (Exception e) {
         	success = false;
+        	_logger.error("Exception during indexing of " + id + ". Error: " + e.getMessage());
         }
     	return success;
     }
